@@ -1,0 +1,11 @@
+/venv
+.venv/
+venv/
+.idea/
+__pycache__/
+accel.txt
+accelerometer_analysis.py
+accxy.py
+accxy.txt
+gps_analysis.py
+gps_vel_head.txt
