@@ -9,9 +9,9 @@ app = FastAPI()
 app.include_router(api_router)
 
 
-@app.on_event("startup")
+'''@app.on_event("startup")
 async def on_startup():
-    await init_models()
+    await init_models()'''
 
 
 @app.get('/')
