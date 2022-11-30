@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  backend:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - ".env"
+    volumes:
+      - .:/usr/src/
+    ports:
+      - 8002:8000
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    env_file:
+      - ".env"
+
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/pgdata
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_PORT: ${DATABASE_PORT}
+      #POSTGRES_HOST: ${DATABASE_HOST}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - 5431:5432
+volumes:
+  postgres_data:
