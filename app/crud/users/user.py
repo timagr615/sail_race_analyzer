@@ -1,8 +1,12 @@
+from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.user import User
+from app.models.users.user import User
 
 from sqlalchemy.exc import IntegrityError
+
+from app.models.db import get_session
+from app.schemas.users.user import UserSch
 
 
 async def get_all_users(session: AsyncSession) -> list[User]:
@@ -10,8 +14,8 @@ async def get_all_users(session: AsyncSession) -> list[User]:
     return result.scalars()
 
 
-async def create_user(session: AsyncSession, username: str) -> User:
-    new_user = User(username=username)
+async def create_user(session: AsyncSession, user: UserSch) -> User:
+    new_user = User(**user.dict())
     session.add(new_user)
     try:
         await session.commit()
