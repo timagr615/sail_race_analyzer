@@ -3,4 +3,4 @@ __pycache__/
 .idea
 *.log
 /postgres_data
-/alembic/versions
+/migrations/versions
