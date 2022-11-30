@@ -5,6 +5,10 @@
 
 `.env` - файл переменных окружения с данными о БД и приложении
 
+`alembic.ini` - конфигурация alembic для миграций
+
+`/migrations` - каталог для настройки alembic и хранения миграций
+
 `Dockerfile` - файл для подъёма контейнера докер с приложением `FastAPI`
 
 `docker-compose.yml` - файл для docker-compose, поднимающий контейнер с БД и приложением FastAPI
@@ -72,4 +76,76 @@ volumes:
 - БЕЗ `PGDATA` приложение FastAPI не подключалось к БД
 - В `DATABASE_URL` проекта FastAPI хост базы данных должен быть указан как имя сервиса `docker-compose`: db
 
+## Шаги для настройки работы приложения
+- установить зависимости из `requirements.txt`
+- добавить код проекта 
+- добавить файл `.env` для хранения переменных окружения: они потом используются 
+в файле `config.py` и docker файлах.
+- создать докер файлы: `Dockerfile и docker-compose.yml` - контейнеры для приложения,
+БД postgres и pgadmin.
+- Далее если в каталогах нет папки `/migrations` и файла `alembic.ini` произвести команду 
+```shell
+alembic init -t async migrations
+```
+- В появившемся файле `alembic.ini` убрать строку sqlalchemy.url
+- В файле `migrations/env.py` добавить
+```python
+from app.models.db import Base
 
+from app.config import settings
+
+config.set_main_option("sqlalchemy.url", settings.database_url)
+
+target_metadata = Base.metadata
+```
+
+- Поднять приложение 
+```shell
+sudo docker compose up -d build
+```
+- Создать первый файл миграции 
+```shell
+sudo docker compose exec backend alembic revision --autogenerate -m "init"
+```
+- Применить миграцию
+```shell
+sudo docker compose exec backend alembig upgrade head
+```
+- `Последние два действия совершаются при миграциях в БД`
+
+### Проблемы
+- Если проблема с подключением к БД, то можно дропнуть БД
+- Нужно остановить контейнеры
+```shell
+sudo docker compose down -v
+```
+- Убрать локальные папки данных бд, они определены в `docker-compose.yml`
+```shell
+sudo rm -rf postgres_data
+```
+- Убрать файлы миграций из `/migrations/versions`
+```shell
+cd migrations
+sudo rm -rf versions
+mkdir versions
+```
+- После данных шагов надо опять поднять приложение и применить мигации
+
+#### Команды Docker
+```shell
+sudo docker compose up -d --build
+sudo docker compose down -v
+sudo docker compose ps # Запущенные контейнеры
+sudo docker compose ps -a # все контейнеры
+sudo docker compose images # изображения
+sudo docker compose logs -f [service name]
+sudo docker compose exec [service name] [command]
+# Например
+sudo docker compose exec backend alembic revision --autogenerate -m "name"
+sudo docker compose exec backend alembig upgrade head
+
+sudo docker ps
+sudo docker ps -a
+sudo docker run -it [image name]
+sudo docker rm [image id]
+```
