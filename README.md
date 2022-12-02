@@ -9,25 +9,39 @@
 
 `/migrations` - каталог для настройки alembic и хранения миграций
 
+`pre_start.sh` - запускает действия перед стартом приложения
+
+`migrate.sh` - запускает автоматические миграции
+
+`drop_db.sh` - дропает базу данных
+
 `Dockerfile` - файл для подъёма контейнера докер с приложением `FastAPI`
 
 `docker-compose.yml` - файл для docker-compose, поднимающий контейнер с БД и приложением FastAPI
 
 ## Разъяснения
 `Dockerfile`
-`````Dockerfile
-    FROM python:3.10.8-slim-buster
-    WORKDIR /usr/src
-    
-    ENV PYTHONDONTWRITEBYTECODE 1
-    ENV PYTHONUNBUFFERED 1
-    
-    COPY ./requirements.txt /usr/src/requirements.txt
-    
-    RUN pip install -r /usr/src/requirements.txt
-    
-    COPY . /usr/src
-`````
+```Dockerfile
+FROM python:3.10.8-slim-buster
+WORKDIR /usr/src
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+COPY ./requirements.txt /usr/src/requirements.txt
+
+RUN pip install -r /usr/src/requirements.txt
+
+COPY . /usr/src
+
+COPY ./pre_start.sh /usr/src
+COPY ./migrate.sh /usr/src
+
+ENV PYTHONPATH /usr/src/
+
+RUN chmod +x /usr/src/pre_start.sh
+RUN chmod +x /usr/src/migrate.sh
+```
 - `FROM python:3.10.8-slim-buster` -  использовать образ `python:3.10.8-slim-buster`
 - `WORKDIR /usr/src` - установка рабочей директории в контейнере
 - `ENV PYTHONDONTWRITEBYTECODE 1`
@@ -36,6 +50,8 @@
 из текущего каталога в `WORKDIR`
 - `RUN pip install -r /usr/src/requirements.txt` - установить зависимости
 - `COPY . /usr/src` - скопировать проект в `WORKDIR`
+- `RUN chmod +x /usr/src/pre_start.sh`
+- `RUN chmod +x /usr/src/migrate.sh` - устанавливает права на исполнение
 
 `docker-compose.yml`
 ```yaml
@@ -44,7 +60,7 @@ version: '3.7'
 services:
   backend:
     build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: sh /usr/src/pre_start.sh
     env_file:
       - ".env"
     volumes:
@@ -102,17 +118,17 @@ target_metadata = Base.metadata
 
 - Поднять приложение 
 ```shell
-sudo docker compose up -d build
+sudo docker compose up -d --build
 ```
-- Создать первый файл миграции 
+- Если нужно обновить миграции 
 ```shell
-sudo docker compose exec backend alembic revision --autogenerate -m "init"
+sudo docker compose exec backend sh migrate.sh
 ```
-- Применить миграцию
+- Если нужно дропнуть БД
 ```shell
-sudo docker compose exec backend alembig upgrade head
+sudo docker compose exec backend sh drop_bd.sh
 ```
-- `Последние два действия совершаются при миграциях в БД`
+
 
 ### Проблемы
 - Если проблема с подключением к БД, то можно дропнуть БД
@@ -142,8 +158,11 @@ sudo docker compose images # изображения
 sudo docker compose logs -f [service name]
 sudo docker compose exec [service name] [command]
 # Например
+sudo docker compose run -it backend bash # терминал в контейнере
 sudo docker compose exec backend alembic revision --autogenerate -m "name"
 sudo docker compose exec backend alembig upgrade head
+sudo docker compose exec backend sh migrate.sh
+sudo docker compose exec backend sh drop_bd.sh
 
 sudo docker ps
 sudo docker ps -a
