@@ -89,11 +89,12 @@ alembic init -t async migrations
 ```
 - В появившемся файле `alembic.ini` убрать строку sqlalchemy.url
 - В файле `migrations/env.py` добавить
+
 ```python
-from app.models.db import Base
+from app.core.db import Base
 
-from app.config import settings
-
+from app.core.config import settings
+from app.users.models import User ...
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
 target_metadata = Base.metadata
