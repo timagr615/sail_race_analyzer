@@ -115,6 +115,7 @@ config.set_main_option("sqlalchemy.url", settings.database_url)
 
 target_metadata = Base.metadata
 ```
+- После добавления моделей в БД не забыть импортировать в /migrations/env.py соответствующую модель
 
 - Поднять приложение 
 ```shell

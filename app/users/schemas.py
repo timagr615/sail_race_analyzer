@@ -2,6 +2,9 @@ from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, constr, EmailStr
 
+from app.news.schemas import NewsDB
+from app.saildata.schemas import SailDataDB
+
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -33,6 +36,9 @@ class UserDisplay(UserBase):
     firstname: str | None
     lastname: str | None
     country: str | None
+
+    news: list[NewsDB] = []
+    saildata: list[SailDataDB] = []
 
     class Config:
         orm_mode = True

@@ -21,7 +21,7 @@ async def read_users(db_session: AsyncSession = Depends(get_session)):
 
 
 @user_router.get('/me', response_model=UserDisplayFull)
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(current_user: UserDisplay = Depends(get_current_user)):
     return current_user
 
 

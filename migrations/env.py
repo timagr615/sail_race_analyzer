@@ -10,6 +10,8 @@ from alembic import context
 
 from app.core.db import Base
 from app.users.models import User
+from app.news.models import News
+from app.saildata import SailData
 
 from app.core.config import settings
 # this is the Alembic Config object, which provides
