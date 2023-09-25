@@ -15,8 +15,8 @@ user_router = APIRouter()
 
 @user_router.get('/all', response_model=list[UserDisplay],
                  dependencies=[Depends(allow_add_news)])
-async def read_users(db_session: AsyncSession = Depends(get_session)):
-    users = await User.get_all(db_session)
+async def read_users(offset: int = 0, limit: int = 100, db_session: AsyncSession = Depends(get_session)):
+    users = await User.get_all(db_session, limit, offset)
     return users
 
 

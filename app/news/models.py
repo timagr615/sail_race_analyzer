@@ -47,8 +47,8 @@ class News(Base):
         return result.scalars().all()
 
     @classmethod
-    async def get_all(cls: Type[N], session: AsyncSession) -> list[N]:
-        news = await session.execute(select(cls))
+    async def get_all(cls: Type[N], session: AsyncSession, offset: int = 0, limit: int = 100) -> list[N]:
+        news = await session.execute(select(cls).offset(offset).limit(limit))
         return news.scalars().all()
 
     @classmethod

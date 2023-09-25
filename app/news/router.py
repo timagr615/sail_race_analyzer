@@ -19,8 +19,8 @@ news_router = APIRouter()
 
 
 @news_router.get('/all', response_model=list[NewsDB])
-async def read_news(db_session: AsyncSession = Depends(get_session)):
-    news = await News.get_all(db_session)
+async def read_news(offset: int = 0, limit: int = 100, db_session: AsyncSession = Depends(get_session)):
+    news = await News.get_all(db_session, offset, limit)
     return news
 
 

@@ -79,8 +79,8 @@ class User(Base):
         await session.commit()
 
     @classmethod
-    async def get_all(cls: Type[T], session: AsyncSession) -> list[T]:
-        query = select(cls)
+    async def get_all(cls: Type[T], session: AsyncSession, limit: int = 100, offset: int = 0) -> list[T]:
+        query = select(cls).offset(offset).limit(limit)
         users = await session.execute(query)
         return users.scalars().all()
 

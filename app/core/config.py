@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int
     file_storage_path: str
 
+    celery_broker_url2: str
+    celery_result_backend: str
+
     class Config:
         env_file = ".env"
 

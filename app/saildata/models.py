@@ -11,6 +11,7 @@ from app.core.db import Base
 from app.core.config import settings
 # from app.users.hashing import get_hashed_password, verify_password
 from app.saildata.schemas import SailDataDB, SailDataUpload, SailDataUpdate
+from app.core.db import get_session
 
 if TYPE_CHECKING:
     from app.users.models import User
@@ -46,13 +47,19 @@ class SailData(Base):
         return datafile
 
     @classmethod
-    async def get_all(cls: Type[S], session: AsyncSession) -> list[S]:
-        data = await session.execute(select(cls))
+    async def get_all(cls: Type[S], session: AsyncSession, limit: int = 100, offset: int = 0) -> list[S]:
+        data = await session.execute(select(cls).offset(offset).limit(limit))
         return data.scalars().all()
 
     @classmethod
     async def get_by_id(cls: Type[S], session: AsyncSession, data_id: int) -> S:
         query = select(cls).where(cls.id == data_id)
+        data = await session.execute(query)
+        return data.scalars().first()
+
+    @classmethod
+    async def get_by_path(cls: Type[S], session: AsyncSession, path: str) -> S:
+        query = select(cls).where(cls.file_path == path)
         data = await session.execute(query)
         return data.scalars().first()
 
@@ -80,6 +87,16 @@ class SailData(Base):
         data_d = data.dict()
         data_d['updated_at'] = datetime.utcnow()
         query = sa_update(cls).where(cls.id == data.id).values(**data_d) \
+            .execution_options(synchronize_session="fetch")
+        result = await session.execute(query)
+        await session.commit()
+        return True
+
+    @classmethod
+    async def update_file_size(cls: Type[S], session: AsyncSession, size: int, path: str) -> bool:
+        data_d = {'file_size': size, 'updated_at': datetime.utcnow()}
+        file = await cls.get_by_path(session, path)
+        query = sa_update(cls).where(cls.id == file.id).values(**data_d) \
             .execution_options(synchronize_session="fetch")
         result = await session.execute(query)
         await session.commit()
